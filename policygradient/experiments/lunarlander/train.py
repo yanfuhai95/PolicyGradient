@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device: ", device)
 
 if torch.cuda.is_available():
-    num_episodes = 5000
+    num_episodes = 2000
 else:
     num_episodes = 50
 
@@ -67,14 +67,8 @@ def plot_result(show_result=False):
 
 
 def make_env():
-    env = gym.make("CartPole-v1")
+    env = gym.make("LunarLander-v2")
     return env
-
-
-def is_converged():
-    if len(episode_rewards) >= 100:
-        return np.mean(episode_rewards[-100:]) >= 480
-    return False
 
 
 if __name__ == "__main__":
@@ -85,7 +79,7 @@ if __name__ == "__main__":
     hidden_dim = 128
     action_dim = env.action_space.n
 
-    GAMMA = 0.99  # discount factor
+    GAMMA = 0.98  # discount factor
     LR = 1e-3  # learning rate
 
     agent = REINFORCE(
@@ -96,9 +90,6 @@ if __name__ == "__main__":
 
     converged = False
     for i in range(10):
-        if converged:
-            break
-        
         with tqdm(total=int(num_episodes / 10), desc='Iteration %d' % i) as pbar:
             for i_episode in range(int(num_episodes / 10)):
                 state, _ = env.reset()
@@ -111,7 +102,7 @@ if __name__ == "__main__":
                     observation, reward, terminated, truncated, _ = env.step(
                         action)
                     episode_reward += reward
-
+                    
                     done = terminated or truncated
 
                     if terminated:
@@ -142,12 +133,6 @@ if __name__ == "__main__":
                         '%.3f' % np.mean(episode_rewards[-10:])
                     })
                 pbar.update(1)
-                
-                if is_converged():
-                    print("Converged")
-                    converged = True
-                    break
-
 
     if not os.path.exists('model'):
         os.makedirs('model')
